@@ -35,8 +35,8 @@ func main() {
 
 	// Initialize the hydra SDK. The defaults work if you started hydra as described in the README.md
 	client, err = hydra.NewSDK(&hydra.Configuration{
-		ClientID:     env.Getenv("HYDRA_CLIENT_ID", "demo"),
-		ClientSecret: env.Getenv("HYDRA_CLIENT_SECRET", "demo"),
+		ClientID:     env.Getenv("HYDRA_CLIENT_ID", "admin"),
+		ClientSecret: env.Getenv("HYDRA_CLIENT_SECRET", "admin"),
 		EndpointURL:  env.Getenv("HYDRA_CLUSTER_URL", "http://localhost:4444"),
 		Scopes:       []string{"hydra.consent"},
 	})
@@ -46,7 +46,7 @@ func main() {
 
 	// Set up a router and some routes
 	r := mux.NewRouter()
-	r.HandleFunc("/", handleHome)
+	r.HandleFunc("/home", handleHome)
 	r.HandleFunc("/consent", handleConsent)
 	r.HandleFunc("/login", handleLogin)
 	r.HandleFunc("/callback", handleCallback)
@@ -65,7 +65,7 @@ func main() {
 // page a user sees.
 func handleHome(w http.ResponseWriter, _ *http.Request) {
 	var config = client.GetOAuth2Config()
-	config.RedirectURL = "http://localhost:4445/callback"
+	config.RedirectURL = "https://auth.runecms.io/callback"
 	config.Scopes = []string{"offline", "openid"}
 
 	var authURL = client.GetOAuth2Config().AuthCodeURL(state) + "&nonce=" + state
@@ -88,7 +88,7 @@ func handleConsent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errors.Wrap(err, "The consent request endpoint does not respond").Error(), http.StatusBadRequest)
 		return
 	} else if response.StatusCode != http.StatusOK {
-		http.Error(w, errors.Wrapf(err, "Consent request endpoint gave status code %d but expected %d", response.StatusCode, http.StatusOK).Error(), http.StatusBadRequest)
+		http.Error(w, errors.Wrapf(errors.New("some error"), "Consent request endpoint gave status code %d but expected %d", response.StatusCode, http.StatusOK).Error(), http.StatusBadRequest)
 		return
 	}
 
